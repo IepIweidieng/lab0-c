@@ -209,24 +209,26 @@ static list_ele_t *ele_sort(list_ele_t *head, size_t len)
     left = ele_sort(left, len / 2);
     if (!right)  // `right` is `NULL` => `left` is the head of the sorted list
         return left;
-    right = ele_sort(right, (len + 1) / 2);
+    right = ele_sort(right, len / 2 + len % 2);
 
     /* Now `left` and `right` are both the head of a non-`NULL` sorted list */
     {
         /* Set up the beginning of the merged list */
         list_ele_t **const phead =
             (strcmp(left->value, right->value) < 0) ? &left : &right;
-        head = *phead;
-        merge = *phead = (*phead)->next;
+        merge = head = *phead;
+        *phead = (*phead)->next;
     }
 
     while (left || right) {
         if (!right || (left && strcmp(left->value, right->value) < 0)) {
             /* `left` should be linked from `merge` */
             merge->next = left;
+            left = left->next;
         } else {
             /* `right` should be linked from `merge` */
             merge->next = right;
+            right = right->next;
         }
         merge = merge->next;
     }
