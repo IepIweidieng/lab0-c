@@ -12,8 +12,11 @@
 queue_t *q_new()
 {
     queue_t *q = malloc(sizeof(queue_t));
-    if (q)
+    if (q) {
         q->head = NULL;
+        q->tail = NULL;
+        q->size = 0;
+    }
     return q;
 }
 
@@ -35,6 +38,30 @@ void q_free(queue_t *q)
 }
 
 /*
+ * Return `NULL` if could not allocate space.
+ * Return non-`NULL` if successful.
+ * Argument `s` points to the string to be stored and should not be `NULL`.
+ * Note: `newh->next` will not be initialized.
+ */
+static list_ele_t *ele_alloc(const char *s)
+{
+    /* Don't forget to allocate space for the string and copy it */
+    list_ele_t *const newh = malloc(sizeof(list_ele_t));
+    if (newh) {
+        const size_t len = strlen(s) + 1;
+        newh->value = malloc(len);
+        if (newh->value) {
+            memcpy(newh->value, s, len);
+        } else {
+            /* What if either call to malloc returns NULL? */
+            free(newh);
+            return NULL;
+        }
+    }
+    return newh;
+}
+
+/*
  * Attempt to insert element at head of queue.
  * Return true if successful.
  * Return false if q is NULL or could not allocate space.
@@ -44,13 +71,19 @@ void q_free(queue_t *q)
 bool q_insert_head(queue_t *q, char *s)
 {
     list_ele_t *newh;
-    /* TODO: What should you do if the q is NULL? */
-    newh = malloc(sizeof(list_ele_t));
-    /* Don't forget to allocate space for the string and copy it */
-    /* What if either call to malloc returns NULL? */
-    newh->next = q->head;
-    q->head = newh;
-    return true;
+    if (!q)
+        return false;
+
+    newh = ele_alloc(s);
+    if (newh) {
+        newh->next = q->head;
+        q->head = newh;
+        if (!q->tail)  // The tail will appear
+            q->tail = newh;
+        ++q->size;
+        return true;
+    }
+    return false;
 }
 
 /*
@@ -62,9 +95,21 @@ bool q_insert_head(queue_t *q, char *s)
  */
 bool q_insert_tail(queue_t *q, char *s)
 {
-    /* TODO: You need to write the complete code for this function */
-    /* Remember: It should operate in O(1) time */
-    /* TODO: Remove the above comment when you are about to implement. */
+    list_ele_t *newh;
+    if (!q)
+        return false;
+
+    newh = ele_alloc(s);
+    if (newh) {
+        newh->next = NULL;
+        if (!q->head)  // The head will appear
+            q->head = newh;
+        else if (q->tail)  // The original tail will be appended
+            q->tail->next = newh;
+        q->tail = newh;
+        ++q->size;
+        return true;
+    }
     return false;
 }
 
@@ -90,10 +135,7 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
  */
 int q_size(queue_t *q)
 {
-    /* TODO: You need to write the code for this function */
-    /* Remember: It should operate in O(1) time */
-    /* TODO: Remove the above comment when you are about to implement. */
-    return 0;
+    return (q) ? q->size : 0;
 }
 
 /*
