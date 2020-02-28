@@ -128,11 +128,11 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
         return false;
 
     node = q->head;
-    if (sp) {
-        const size_t len = strnlen(node->value, bufsize);
-        memcpy(sp, node->value, len);
-        if (len == bufsize && len > 0)
-            sp[len - 1] = '\0';
+    if (sp && bufsize) {
+        const size_t len = strnlen(node->value, bufsize - 1);
+        memcpy(sp, node->value, len + 1);
+        if (len + 1 == bufsize)
+            sp[len] = '\0';
     }
     free(node->value);
 
