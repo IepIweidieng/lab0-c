@@ -184,12 +184,65 @@ void q_reverse(queue_t *q)
 }
 
 /*
+ * Sort `len` elements start with `head` in ascending order using merge sort
+ * No effect if `head` is `NULL` or its member `next` is `NULL`.
+ * The function reduces to insertion sort when `len` < 4
+ */
+static list_ele_t *ele_sort(list_ele_t *head, size_t len)
+{
+    list_ele_t *left;
+    list_ele_t *right;
+    list_ele_t *merge;
+
+    if (!head || !head->next)
+        return head;
+
+    left = right = head;
+    for (size_t k = 1, n = len / 2; k < n && right; ++k)
+        right = right->next;
+    if (right) {
+        list_ele_t *const next = right->next;
+        right->next = NULL;
+        right = next;
+    }
+
+    left = ele_sort(left, len / 2);
+    if (!right)  // `right` is `NULL` => `left` is the head of the sorted list
+        return left;
+    right = ele_sort(right, (len + 1) / 2);
+
+    /* Now `left` and `right` are both the head of a non-`NULL` sorted list */
+    {
+        /* Set up the beginning of the merged list */
+        list_ele_t **const phead =
+            (strcmp(left->value, right->value) < 0) ? &left : &right;
+        head = *phead;
+        merge = *phead = (*phead)->next;
+    }
+
+    while (left || right) {
+        if (!right || (left && strcmp(left->value, right->value) < 0)) {
+            /* `left` should be linked from `merge` */
+            merge->next = left;
+        } else {
+            /* `right` should be linked from `merge` */
+            merge->next = right;
+        }
+        merge = merge->next;
+    }
+
+    return head;
+}
+
+/*
  * Sort elements of queue in ascending order
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
 void q_sort(queue_t *q)
 {
-    /* TODO: You need to write the code for this function */
-    /* TODO: Remove the above comment when you are about to implement. */
+    if (!q || !q->head)
+        return;
+
+    ele_sort(q->head, q->size);
 }
