@@ -183,19 +183,24 @@ void q_reverse(queue_t *q)
     q->head = prev;
 }
 
+typedef struct {
+    list_ele_t *head;
+    list_ele_t *tail;
+} list_span_t;
+
 /*
  * Sort `len` elements start with `head` in ascending order using merge sort
  * No effect if `head` is `NULL` or its member `next` is `NULL`.
  * The function reduces to insertion sort when `len` < 4
  */
-static list_ele_t *ele_sort(list_ele_t *head, size_t len)
+static list_span_t ele_sort(list_ele_t *head, size_t len)
 {
     list_ele_t *left;
     list_ele_t *right;
     list_ele_t *merge;
 
     if (!head || !head->next)
-        return head;
+        return (list_span_t){head, head};
 
     left = right = head;
     for (size_t k = 1, n = len / 2; k < n && right; ++k)
@@ -206,10 +211,13 @@ static list_ele_t *ele_sort(list_ele_t *head, size_t len)
         right = next;
     }
 
-    left = ele_sort(left, len / 2);
-    if (!right)  // `right` is `NULL` => `left` is the head of the sorted list
-        return left;
-    right = ele_sort(right, len / 2 + len % 2);
+    {
+        const list_span_t left_res = ele_sort(left, len / 2);
+        left = left_res.head;
+        if (!right)  // `left` is the head of the sorted list
+            return left_res;
+    }
+    right = ele_sort(right, len / 2 + len % 2).head;
 
     /* Now `left` and `right` are both the head of a non-`NULL` sorted list */
     {
@@ -233,7 +241,7 @@ static list_ele_t *ele_sort(list_ele_t *head, size_t len)
         merge = merge->next;
     }
 
-    return head;
+    return (list_span_t){head, merge};
 }
 
 /*
@@ -243,8 +251,11 @@ static list_ele_t *ele_sort(list_ele_t *head, size_t len)
  */
 void q_sort(queue_t *q)
 {
-    if (!q || !q->head)
+    list_span_t span;
+    if (!q || !q->head || !q->head->next)
         return;
 
-    ele_sort(q->head, q->size);
+    span = ele_sort(q->head, q->size);
+    q->head = span.head;
+    q->tail = span.tail;
 }
