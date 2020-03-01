@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "compare.h"
 #include "harness.h"
 #include "queue.h"
 
@@ -193,7 +194,7 @@ typedef struct {
  * No effect if `head` is `NULL` or its member `next` is `NULL`.
  * The function reduces to insertion sort when `len` < 4
  */
-static list_span_t ele_sort(list_ele_t *head, size_t len)
+static list_span_t ele_sort(list_ele_t *head, size_t len, cmp_func_t cmp)
 {
     list_ele_t *left;
     list_ele_t *right;
@@ -212,24 +213,24 @@ static list_span_t ele_sort(list_ele_t *head, size_t len)
     }
 
     {
-        const list_span_t left_res = ele_sort(left, len / 2);
+        const list_span_t left_res = ele_sort(left, len / 2, cmp);
         left = left_res.head;
         if (!right)  // `left` is the head of the sorted list
             return left_res;
     }
-    right = ele_sort(right, len / 2 + len % 2).head;
+    right = ele_sort(right, len / 2 + len % 2, cmp).head;
 
     /* Now `left` and `right` are both the head of a non-`NULL` sorted list */
     {
         /* Set up the beginning of the merged list */
         list_ele_t **const phead =
-            (strcmp(left->value, right->value) < 0) ? &left : &right;
+            (cmp(left->value, right->value) < 0) ? &left : &right;
         merge = head = *phead;
         *phead = (*phead)->next;
     }
 
     while (left || right) {
-        if (!right || (left && strcmp(left->value, right->value) < 0)) {
+        if (!right || (left && cmp(left->value, right->value) < 0)) {
             /* `left` should be linked from `merge` */
             merge->next = left;
             left = left->next;
@@ -246,16 +247,17 @@ static list_span_t ele_sort(list_ele_t *head, size_t len)
 
 /*
  * Sort elements of queue in ascending order
- * No effect if q is NULL or empty. In addition, if q has only one
+ * No effect if `q` is `NULL` or empty. In addition, if `q` has only one
  * element, do nothing.
+ * Argument `cmp` should not be `NULL`.
  */
-void q_sort(queue_t *q)
+void q_sort(queue_t *q, cmp_func_t cmp)
 {
     list_span_t span;
     if (!q || !q->head || !q->head->next)
         return;
 
-    span = ele_sort(q->head, q->size);
+    span = ele_sort(q->head, q->size, cmp);
     q->head = span.head;
     q->tail = span.tail;
 }

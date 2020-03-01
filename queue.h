@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "compare.h"
+
 /* Data structure declarations */
 
 /* Linked list element (You shouldn't need to change this) */
@@ -91,6 +93,6 @@ void q_reverse(queue_t *q);
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(queue_t *q);
+void q_sort(queue_t *q, cmp_func_t cmp);
 
 #endif /* LAB0_QUEUE_H */

@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h> /* strcasecmp */
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -30,6 +29,8 @@
  * solution code
  */
 #include "queue.h"
+
+#include "compare.h" /* comparison functions */
 
 #include "console.h"
 #include "report.h"
@@ -62,6 +63,9 @@ static int string_length = MAXSTRING;
 #define MAX_RANDSTR_LEN 10
 static const char charset[] = "abcdefghijklmnopqrstuvwxyz";
 
+/* Comparison method */
+static int cmp_func_idx = 0;
+
 /* Forward declarations */
 static bool show_queue(int vlevel);
 static bool do_new(int argc, char *argv[]);
@@ -76,6 +80,11 @@ static bool do_sort(int argc, char *argv[]);
 static bool do_show(int argc, char *argv[]);
 
 static void queue_init();
+
+static void compare_setter(int oldval)
+{
+    printf("Will use %s for sorting.\n", cmp_get_func_str(cmp_func_idx));
+}
 
 static void console_init()
 {
@@ -104,6 +113,11 @@ static void console_init()
               NULL);
     add_param("fail", &fail_limit,
               "Number of times allow queue operations to return false", NULL);
+#define CMP_EXPAND_FMT(n) " " #n ": " CMP_FUNC_STR(n)
+    add_param("compare", &cmp_func_idx,
+              "Comparison function to be used (default: 0)" CMP_EXPAND(),
+              compare_setter);
+#undef CMP_EXPAND_FMT
 }
 
 static bool do_new(int argc, char *argv[])
@@ -547,9 +561,10 @@ bool do_sort(int argc, char *argv[])
         report(3, "Warning: Calling sort on single node");
     error_check();
 
+    const cmp_func_t cmp = cmp_get_func(cmp_func_idx);
     set_noallocate_mode(true);
     if (exception_setup(true))
-        q_sort(q);
+        q_sort(q, cmp);
     exception_cancel();
     set_noallocate_mode(false);
 
@@ -557,8 +572,7 @@ bool do_sort(int argc, char *argv[])
     if (q && q->head) {
         for (list_ele_t *e = q->head; e->next && --cnt; e = e->next) {
             /* Ensure each element in ascending order */
-            /* FIXME: add an option to specify sorting order */
-            if (strcasecmp(e->value, e->next->value) > 0) {
+            if (cmp(e->value, e->next->value) > 0) {
                 report(1, "ERROR: Not sorted in ascending order");
                 ok = false;
                 break;
