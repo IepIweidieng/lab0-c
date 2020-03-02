@@ -14,6 +14,10 @@ const char *cmp_get_func_str(int index);
 #define CMP_FUNC_NAME_1 strcmp
 #define CMP_FUNC_NAME_2 negstrcasecmp
 #define CMP_FUNC_NAME_3 negstrcmp
+#define CMP_FUNC_NAME_4 natstrcasecmp
+#define CMP_FUNC_NAME_5 natstrcmp
+#define CMP_FUNC_NAME_6 negnatstrcasecmp
+#define CMP_FUNC_NAME_7 negnatstrcmp
 
 /* Function name of the comparison functions */
 #define CMP_FUNC_NAME(index) CMP_FUNC_NAME_##index
@@ -31,8 +35,12 @@ const char *cmp_get_func_str(int index);
 
 /* Define macro `CMP_EXPAND_FMT(n)` first and then invoke `CMP_EXPAND()` */
 
-#define CMP_EXPAND() \
-    CMP_EXPAND_FMT(0) CMP_EXPAND_FMT(1) CMP_EXPAND_FMT(2) CMP_EXPAND_FMT(3)
+#define CMP_EXPAND()  \
+    CMP_EXPAND_FMT(0) \
+    CMP_EXPAND_FMT(1) \
+    CMP_EXPAND_FMT(2) \
+    CMP_EXPAND_FMT(3) \
+    CMP_EXPAND_FMT(4) CMP_EXPAND_FMT(5) CMP_EXPAND_FMT(6) CMP_EXPAND_FMT(7)
 
 #define CMP_EXPAND_FMT(n) CMP_ENUM_NAME(n) = n,
 typedef enum { CMP_EXPAND() } cmp_idx_t;
@@ -40,5 +48,9 @@ typedef enum { CMP_EXPAND() } cmp_idx_t;
 
 int negstrcasecmp(const char *s1, const char *s2);
 int negstrcmp(const char *s1, const char *s2);
+int natstrcasecmp(const char *s1, const char *s2);
+int natstrcmp(const char *s1, const char *s2);
+int negnatstrcasecmp(const char *s1, const char *s2);
+int negnatstrcmp(const char *s1, const char *s2);
 
 #endif /* LAB0_COMPARE_H */
