@@ -9,17 +9,17 @@ typedef int (*cmp_func_t)(const char *s1, const char *s2);
 cmp_func_t cmp_get_func(int index);
 const char *cmp_get_func_str(int index);
 
-/* Base name of the comparison functions (without `cmp`) */
-#define CMP_BASE_NAME_0 strcase
-#define CMP_BASE_NAME_1 str
-#define CMP_BASE_NAME_2 negstrcase
-#define CMP_BASE_NAME_3 negstr
+/* Name of the comparison functions */
+#define CMP_FUNC_NAME_0 strcasecmp
+#define CMP_FUNC_NAME_1 strcmp
+#define CMP_FUNC_NAME_2 negstrcasecmp
+#define CMP_FUNC_NAME_3 negstrcmp
 
 /* Function name of the comparison functions */
-#define CMP_FUNC_NAME(index) CMP_CAT(CMP_BASE_NAME_##index, cmp)
+#define CMP_FUNC_NAME(index) CMP_FUNC_NAME_##index
 #define CMP_FUNC_STR(index) CMP_STR(CMP_FUNC_NAME(index))
 /* Enumeration name of the comparison functions */
-#define CMP_ENUM_NAME(index) CMP_CAT(k_cmp_, CMP_BASE_NAME_##index)
+#define CMP_ENUM_NAME(index) CMP_CAT(k_, CMP_FUNC_NAME_##index)
 
 /* Concatenate with expansion */
 #define CMP_CAT(x, ...) CMP_CAT_NOEXPAND(x, __VA_ARGS__)
