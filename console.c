@@ -163,11 +163,12 @@ static char **parse_args(char *line, int *argcp)
     char *src = line;
     char *dst = buf;
     bool skipping = true;
+    bool quote = false;
 
     int c;
     int argc = 0;
     while ((c = *src++) != '\0') {
-        if (isspace(c)) {
+        if (!quote && isspace(c)) {
             if (!skipping) {
                 /* Hit end of word */
                 *dst++ = '\0';
@@ -179,9 +180,14 @@ static char **parse_args(char *line, int *argcp)
                 argc++;
                 skipping = false;
             }
-            *dst++ = c;
+            if (c == '\"')
+                quote = !quote;
+            else
+                *dst++ = c;
         }
     }
+    if (quote)
+        report(1, "Warning: Unbalanced quote '%s'", line);
 
     /* Now assemble into array of strings */
     char **argv = calloc_or_fail(argc, sizeof(char *), "parse_args");
